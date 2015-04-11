@@ -2,19 +2,21 @@ import SimpleHTTPSServer
 import sys
 import os
 import thread
+import Queue
 
 
 class webserver( SimpleHTTPSServer.handler ):
 	"""docstring for webserver"""
 	def __init__( self ):
 		super(webserver, self).__init__()
+		self.users = {}
 		self.actions = [
 			( 'post', '/:any', self.post_echo ),
-			( 'post', '/post_file', self.post_response ),
+			( 'post', '/send/:username', self.post_send ),
+			( 'get', '/recv/:username', self.get_recv ),
 			( 'get', '/user/:username', self.get_user ),
-			( 'get', '/post/:year/:month/:day', self.get_post ),
 			( 'get', '/:file', self.get_file ) ]
-		
+
 	def post_echo( self, request ):
 		try:
 			output = self.form_data( request['data'] )
@@ -23,22 +25,26 @@ class webserver( SimpleHTTPSServer.handler ):
 			output = {'ERROR': 'parse_error'}
 		output = json.dumps( output )
 		headers = self.create_header()
-		headers = self.add_header( headers, ( "Content-Type", "application/json") )
+		headers["Content-Type"] = "application/json"
 		return self.end_response( headers, output )
-		
-	def post_response( self, request ):
+
+	def post_send( self, request ):
+		try:
+			image = self.form_data( request['data'] )["image"]
+		except:
+			output = {'ERROR': 'parse_error'}
 		headers = self.create_header()
-		headers = self.add_header( headers, ( "Content-Type", "application/octet-stream") )
-		return self.end_response( headers, request['post']['file_name'] )
-		
+		headers["Content-Type"] = "application/json"
+		return self.end_response( headers, output )
+
+	def get_recv( self, request ):
+		image = self.users[ request['variables']['user'] ].get()
+		headers = self.create_header()
+		headers["Content-Type"] = "image/png"
+		return self.end_response( headers, image )
+
 	def get_user( self, request ):
 		output = self.template( 'user.html', request['variables'] )
-		headers = self.create_header()
-		return self.end_response( headers, output )
-		
-	def get_post( self, request ):
-		output = json.dumps(request['variables'])
-		headers = self.add_header( headers, ( "Content-Type", "application/json") )
 		headers = self.create_header()
 		return self.end_response( headers, output )
 

@@ -1,1 +1,61 @@
-<script src="https://gist.github.com/pdxjohnny/ad4c55a39bb2056b28eb.js"></script>
+<script src="/image_video.js"></script>
+<!-- <script src="/send_video.js"></script> -->
+
+<img id="remote" class="half" src="/defualt.png">
+<img id="local_image" class="hidden" >
+<video id="local" autoplay class="half" ></video>
+<canvas id="canvas" class="half hidden" ></canvas>
+
+<style type="text/css">
+.half {
+	width: 640px;
+	height: 49%;
+}
+.hidden {
+	display: none;
+}
+</style>
+
+<script>
+var video = document.getElementById('local');
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var streaming = false;
+
+function snapshot() {
+	if ( streaming )
+	{
+		ctx.drawImage(video, 0, 0, canvas.width, canvas.height );
+		var current_frame = canvas.toDataURL('image/png');
+		document.getElementById('local_image').src = current_frame;
+		window.requestAnimationFrame( snapshot );
+	}
+}
+
+window.requestAnimationFrame( snapshot );
+
+video.addEventListener('click', snapshot, false);
+
+navigator.getUserMedia  = navigator.getUserMedia ||
+	navigator.webkitGetUserMedia ||
+	navigator.mozGetUserMedia ||
+	navigator.msGetUserMedia;
+
+if (navigator.getUserMedia)
+{
+	streaming = true;
+	navigator.getUserMedia({audio: true, video: true}, function(stream) {
+		video.src = window.URL.createObjectURL(stream);
+		// canvas.width = video.width;
+		// canvas.height = video.height;
+	}, errorCallback);
+}
+else
+{
+	video.src = 'somevideo.webm'; // fallback.
+}
+
+function errorCallback (argument) {
+	// body...
+}
+</script>
