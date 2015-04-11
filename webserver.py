@@ -12,47 +12,37 @@ class webserver( SimpleHTTPSServer.handler ):
 		super(webserver, self).__init__()
 		self.users = {}
 		self.actions = [
-			( 'post', '/:any', self.post_echo ),
 			( "post", "/send/:user", self.post_send ),
 			( "get", "/recv/:user", self.get_recv ),
 			( "get", "/user/:user", self.get_user ),
-			( "get", "/:file", self.get_file ) ]
-
-	def post_echo( self, request ):
-		try:
-			output = self.form_data( request['data'] )
-		except:
-			print request['data']
-			output = {'ERROR': 'parse_error'}
-		output = json.dumps( output )
-		headers = self.create_header()
-		headers = self.add_header( headers, ( "Content-Type", "application/json") )
-		return self.end_response( headers, output )
+			( "get", "/:file", self.get_file )
+			]
 
 	def post_send( self, request ):
 		output = { "image": False }
-		print request["variables"]["user"]
-		# try:
-		# 	image = self.form_data( request["data"] )["image"]
-		# 	if not request["variables"]["user"] in self.users:
-		# 		self.users[ request["variables"]["user"] ] = Queue.Queue()
-		# 	print request["variables"]["user"], self.users[ request["variables"]["user"] ].qsize()
-		# 	self.users[ request["variables"]["user"] ].put( image )
-		# 	if self.users[ request["variables"]["user"] ].qsize() > 10:
-		# 		self.users[ request["variables"]["user"] ].pop()
-		# 	output["image"] = True
-		# except:
-		# 	output["ERROR"] = "parse error"
+		try:
+			user = request["variables"]["user"]
+			image = self.form_data( request["data"] )["image"]
+			if not user in self.users:
+				self.users[ user ] = Queue.Queue()
+			self.users[ user ].put( image )
+			if self.users[ user ].qsize() > 3:
+				self.users[ user ].get()
+			output["image"] = True
+		except Exception, e:
+			output["ERROR"] = str( e )
 		output = json.dumps( output )
 		headers = self.create_header()
 		headers["Content-Type"] = "application/json"
-		print output
 		return self.end_response( headers, output )
 
 	def get_recv( self, request ):
 		output = { "image": False }
-		if request["variables"]["user"] in self.users:
-			output["image"] = self.users[ request["variables"]["user"] ].get()
+		user = request["variables"]["user"]
+		if user in self.users:
+			output["image"] = self.users[ user ].get()
+			if self.users[ user ].qsize() < 2:
+				self.users[ user ].put( output["image"] )
 		output = json.dumps( output )
 		headers = self.create_header()
 		headers["Content-Type"] = "application/json"

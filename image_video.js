@@ -1,12 +1,17 @@
-var image_video = function image_video ( id )
+var image_video = function image_video ( id, page )
 {
 	this.image_element = document.getElementById( id );
 	this.page = this.image_element.src;
+	if ( typeof page !== "undefined" )
+	{
+		this.page = page;
+	}
+	this.b64 = false;
 	this.running = false;
 	return this;
 }
 
-image_video.prototype.get_image = function get_image ( page, callback )
+image_video.prototype.get_image = function ( page, callback )
 {
 	var xmlHTTP = new XMLHttpRequest();
 	xmlHTTP.open('GET',page,true);
@@ -21,20 +26,48 @@ image_video.prototype.get_image = function get_image ( page, callback )
 		}
 		var b64 = window.btoa( binary );
 		var dataURL = "data:image/jpeg;base64," + b64;
-		callback( page, dataURL );
+		callback( dataURL );
 	};
 	xmlHTTP.send();
 }
 
-image_video.prototype.reload_image = function reload_image ( image_element, page, callback )
+image_video.prototype.get_plain = function ( page, callback )
 {
-	this.get_image( page, function( page, data ) {
-		image_element.src = data;
+	$.get( page, function( data ) {
 		if ( typeof callback === "function" )
 		{
-			callback();
+			callback( data );
 		}
 	});
+}
+
+image_video.prototype.reload_image = function ( image_element, page, callback )
+{
+	if ( this.b64 )
+	{
+		this.get_plain( page, function( data ) {
+			image_element.src = data["image"];
+			if ( typeof callback === "function" )
+			{
+				callback();
+			}
+		});
+	}
+	else
+	{
+		this.get_image( page, function( data ) {
+			image_element.src = data;
+			if ( typeof callback === "function" )
+			{
+				callback();
+			}
+		});
+	}
+}
+
+image_video.prototype.reload = function ( callback )
+{
+	this.reload_image( this.image_element, this.page, callback );
 }
 
 image_video.prototype.start = function ()
@@ -56,6 +89,6 @@ image_video.prototype.main = function ()
 	}
 	if ( this.running )
 	{
-		this.reload_image( this.image_element, this.page, callback.bind( this ) );
+		this.reload( callback.bind( this ) );
 	}
 }

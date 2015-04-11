@@ -1,8 +1,8 @@
 <script src="/image_video.js"></script>
 <script src="/send_video.js"></script>
 
-<!-- <img id="remote" class="half" src="/defualt.png"> -->
-<img id="local_image" class="half" >
+<img id="remote_image" class="half" ></img>
+<img id="local_image" class="half" ></img>
 <video id="local" autoplay class="half hidden" ></video>
 <canvas id="canvas" class="half hidden" ></canvas>
 
@@ -20,19 +20,24 @@
 var video = document.getElementById('local');
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
+var quality = 0.25;
 var streaming = false;
+
+var local = new send_video( "local_image", "/send/rylin" );
+var remote = new image_video( "remote_image", "/recv/rylin" );
+remote.b64 = true;
 
 function snapshot() {
 	if ( streaming )
 	{
 		ctx.drawImage( video, 0, 0, canvas.width, canvas.height );
-		var current_frame = canvas.toDataURL('image/png');
+		var current_frame = canvas.toDataURL( 'image/jpeg', quality );
 		document.getElementById('local_image').src = current_frame;
-		// window.requestAnimationFrame( snapshot );
+		window.requestAnimationFrame( snapshot );
 	}
 }
 
-// window.requestAnimationFrame( snapshot );
+window.requestAnimationFrame( snapshot );
 
 video.addEventListener('click', snapshot, false);
 

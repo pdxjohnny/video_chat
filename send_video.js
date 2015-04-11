@@ -15,12 +15,13 @@ var send_video = function send_video ( id, page )
 send_video.prototype.send_image = function send_image ( callback )
 {
 	var data = { "image": this.image_element.src };
-	$.post( this.page, data, function ( data ) {
+	var on_complete = function ( data ) {
 		if ( typeof callback === "function" )
 		{
 			callback( data );
 		}
-	});
+	}
+	$.post( this.page, data, on_complete );
 }
 
 send_video.prototype.start = function ()
