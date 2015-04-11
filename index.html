@@ -1,9 +1,9 @@
 <script src="/image_video.js"></script>
-<!-- <script src="/send_video.js"></script> -->
+<script src="/send_video.js"></script>
 
-<img id="remote" class="half" src="/defualt.png">
-<img id="local_image" class="hidden" >
-<video id="local" autoplay class="half" ></video>
+<!-- <img id="remote" class="half" src="/defualt.png"> -->
+<img id="local_image" class="half" >
+<video id="local" autoplay class="half hidden" ></video>
 <canvas id="canvas" class="half hidden" ></canvas>
 
 <style type="text/css">
@@ -25,14 +25,14 @@ var streaming = false;
 function snapshot() {
 	if ( streaming )
 	{
-		ctx.drawImage(video, 0, 0, canvas.width, canvas.height );
+		ctx.drawImage( video, 0, 0, canvas.width, canvas.height );
 		var current_frame = canvas.toDataURL('image/png');
 		document.getElementById('local_image').src = current_frame;
-		window.requestAnimationFrame( snapshot );
+		// window.requestAnimationFrame( snapshot );
 	}
 }
 
-window.requestAnimationFrame( snapshot );
+// window.requestAnimationFrame( snapshot );
 
 video.addEventListener('click', snapshot, false);
 
@@ -44,10 +44,8 @@ navigator.getUserMedia  = navigator.getUserMedia ||
 if (navigator.getUserMedia)
 {
 	streaming = true;
-	navigator.getUserMedia({audio: true, video: true}, function(stream) {
+	navigator.getUserMedia({audio: false, video: true}, function(stream) {
 		video.src = window.URL.createObjectURL(stream);
-		// canvas.width = video.width;
-		// canvas.height = video.height;
 	}, errorCallback);
 }
 else

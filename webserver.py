@@ -3,6 +3,7 @@ import sys
 import os
 import thread
 import Queue
+import json
 
 
 class webserver( SimpleHTTPSServer.handler ):
@@ -12,10 +13,10 @@ class webserver( SimpleHTTPSServer.handler ):
 		self.users = {}
 		self.actions = [
 			( 'post', '/:any', self.post_echo ),
-			( 'post', '/send/:username', self.post_send ),
-			( 'get', '/recv/:username', self.get_recv ),
-			( 'get', '/user/:username', self.get_user ),
-			( 'get', '/:file', self.get_file ) ]
+			( "post", "/send/:user", self.post_send ),
+			( "get", "/recv/:user", self.get_recv ),
+			( "get", "/user/:user", self.get_user ),
+			( "get", "/:file", self.get_file ) ]
 
 	def post_echo( self, request ):
 		try:
@@ -25,33 +26,47 @@ class webserver( SimpleHTTPSServer.handler ):
 			output = {'ERROR': 'parse_error'}
 		output = json.dumps( output )
 		headers = self.create_header()
-		headers["Content-Type"] = "application/json"
+		headers = self.add_header( headers, ( "Content-Type", "application/json") )
 		return self.end_response( headers, output )
 
 	def post_send( self, request ):
-		try:
-			image = self.form_data( request['data'] )["image"]
-		except:
-			output = {'ERROR': 'parse_error'}
+		output = { "image": False }
+		print request["variables"]["user"]
+		# try:
+		# 	image = self.form_data( request["data"] )["image"]
+		# 	if not request["variables"]["user"] in self.users:
+		# 		self.users[ request["variables"]["user"] ] = Queue.Queue()
+		# 	print request["variables"]["user"], self.users[ request["variables"]["user"] ].qsize()
+		# 	self.users[ request["variables"]["user"] ].put( image )
+		# 	if self.users[ request["variables"]["user"] ].qsize() > 10:
+		# 		self.users[ request["variables"]["user"] ].pop()
+		# 	output["image"] = True
+		# except:
+		# 	output["ERROR"] = "parse error"
+		output = json.dumps( output )
+		headers = self.create_header()
+		headers["Content-Type"] = "application/json"
+		print output
+		return self.end_response( headers, output )
+
+	def get_recv( self, request ):
+		output = { "image": False }
+		if request["variables"]["user"] in self.users:
+			output["image"] = self.users[ request["variables"]["user"] ].get()
+		output = json.dumps( output )
 		headers = self.create_header()
 		headers["Content-Type"] = "application/json"
 		return self.end_response( headers, output )
 
-	def get_recv( self, request ):
-		image = self.users[ request['variables']['user'] ].get()
-		headers = self.create_header()
-		headers["Content-Type"] = "image/png"
-		return self.end_response( headers, image )
-
 	def get_user( self, request ):
-		output = self.template( 'user.html', request['variables'] )
+		output = self.template( "user.html", request["variables"] )
 		headers = self.create_header()
 		return self.end_response( headers, output )
 
 	def get_file( self, request ):
 		return self.serve_page( directory + request["page"] )
 
-directory = os.path.dirname(os.path.realpath(__file__)) + '/'
+directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 
 def main():
 	address = "0.0.0.0"
@@ -66,5 +81,5 @@ def main():
 	raw_input("Return Key to exit\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 	main()
