@@ -23,11 +23,7 @@ class webserver( SimpleHTTPSServer.handler ):
 		try:
 			user = request["variables"]["user"]
 			image = self.form_data( request["data"] )["image"]
-			if not user in self.users:
-				self.users[ user ] = Queue.Queue()
-			self.users[ user ].put( image )
-			if self.users[ user ].qsize() > 3:
-				self.users[ user ].get()
+			self.users[ user ] = image
 			output["image"] = True
 		except Exception, e:
 			output["ERROR"] = str( e )
@@ -40,9 +36,7 @@ class webserver( SimpleHTTPSServer.handler ):
 		output = { "image": False }
 		user = request["variables"]["user"]
 		if user in self.users:
-			output["image"] = self.users[ user ].get()
-			if self.users[ user ].qsize() < 2:
-				self.users[ user ].put( output["image"] )
+			output["image"] = self.users[ user ]
 		output = json.dumps( output )
 		headers = self.create_header()
 		headers["Content-Type"] = "application/json"

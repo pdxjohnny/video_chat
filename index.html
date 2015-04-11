@@ -1,6 +1,13 @@
 <script src="/image_video.js"></script>
 <script src="/send_video.js"></script>
 
+<input id="remote_name" placeholder="Your Name" ></input>
+<input id="local_name" placeholder="Friends Name" ></input>
+<button id="start" >Start</button>
+<button id="stop" >Stop</button>
+
+<br>
+
 <img id="remote_image" class="half" ></img>
 <img id="local_image" class="half" ></img>
 <video id="local" autoplay class="half hidden" ></video>
@@ -17,15 +24,34 @@
 </style>
 
 <script>
+var remote_name = document.getElementById('remote_name');
+var local_name = document.getElementById('local_name');
+var start = document.getElementById('start');
+var stop = document.getElementById('stop');
 var video = document.getElementById('local');
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-var quality = 0.25;
+var quality = 1;
 var streaming = false;
 
-var local = new send_video( "local_image", "/send/rylin" );
-var remote = new image_video( "remote_image", "/recv/rylin" );
+var local = new send_video( "local_image" );
+var remote = new image_video( "remote_image" );
 remote.b64 = true;
+
+start.onclick = function ( event )
+{
+	local.page = "/send/" + remote_name.value;
+	remote.page = "/recv/" + local_name.value;
+	local.start();
+	remote.start();
+}
+
+
+stop.onclick = function ( event )
+{
+	local.stop();
+	remote.stop();
+}
 
 function snapshot() {
 	if ( streaming )
