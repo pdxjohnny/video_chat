@@ -7,14 +7,12 @@ import json
 
 
 class webserver( SimpleHTTPSServer.handler ):
-	"""docstring for webserver"""
 	def __init__( self ):
 		super(webserver, self).__init__()
 		self.users = {}
 		self.actions = [
 			( "post", "/send/:user", self.post_send ),
 			( "get", "/recv/:user", self.get_recv ),
-			( "get", "/user/:user", self.get_user ),
 			( "get", "/:file", self.get_file )
 			]
 
@@ -40,11 +38,6 @@ class webserver( SimpleHTTPSServer.handler ):
 		output = json.dumps( output )
 		headers = self.create_header()
 		headers["Content-Type"] = "application/json"
-		return self.end_response( headers, output )
-
-	def get_user( self, request ):
-		output = self.template( "user.html", request["variables"] )
-		headers = self.create_header()
 		return self.end_response( headers, output )
 
 	def get_file( self, request ):

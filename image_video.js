@@ -33,12 +33,16 @@ image_video.prototype.get_image = function ( page, callback )
 
 image_video.prototype.get_plain = function ( page, callback )
 {
-	$.get( page, function( data ) {
+	var xmlHTTP = new XMLHttpRequest();
+	xmlHTTP.open( 'GET', page, true );
+	xmlHTTP.onload = function(e)
+	{
 		if ( typeof callback === "function" )
 		{
-			callback( data );
+			callback( JSON.parse( this.response ) );
 		}
-	});
+	};
+	xmlHTTP.send();
 }
 
 image_video.prototype.reload_image = function ( image_element, page, callback )
@@ -46,7 +50,10 @@ image_video.prototype.reload_image = function ( image_element, page, callback )
 	if ( this.b64 )
 	{
 		this.get_plain( page, function( data ) {
-			image_element.src = data["image"];
+			if ( data["image"] )
+			{
+				image_element.src = data["image"];
+			}
 			if ( typeof callback === "function" )
 			{
 				callback();

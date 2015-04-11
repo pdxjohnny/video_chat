@@ -8,15 +8,15 @@
 
 <br>
 
-<img id="remote_image" class="half" ></img>
-<img id="local_image" class="half" ></img>
-<video id="local" autoplay class="half hidden" ></video>
+<img id="remote_image" class="half hidden" ></img>
+<img id="local_image" class="half hidden" ></img>
+<video id="local_video" autoplay class="hidden" ></video>
 <canvas id="canvas" class="half hidden" ></canvas>
 
 <style type="text/css">
 .half {
 	width: 640px;
-	height: 49%;
+	height: 48%;
 }
 .hidden {
 	display: none;
@@ -24,17 +24,13 @@
 </style>
 
 <script>
+var remote_image = document.getElementById('remote_image');
 var remote_name = document.getElementById('remote_name');
 var local_name = document.getElementById('local_name');
 var start = document.getElementById('start');
 var stop = document.getElementById('stop');
-var video = document.getElementById('local');
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
-var quality = 1;
-var streaming = false;
 
-var local = new send_video( "local_image" );
+var local = new send_video( "local_video", false, "local_image" );
 var remote = new image_video( "remote_image" );
 remote.b64 = true;
 
@@ -44,47 +40,13 @@ start.onclick = function ( event )
 	remote.page = "/recv/" + local_name.value;
 	local.start();
 	remote.start();
+	local_image.style.display = "block";
+	remote_image.style.display = "block";
 }
-
 
 stop.onclick = function ( event )
 {
 	local.stop();
 	remote.stop();
-}
-
-function snapshot() {
-	if ( streaming )
-	{
-		ctx.drawImage( video, 0, 0, canvas.width, canvas.height );
-		var current_frame = canvas.toDataURL( 'image/jpeg', quality );
-		document.getElementById('local_image').src = current_frame;
-		window.requestAnimationFrame( snapshot );
-	}
-}
-
-window.requestAnimationFrame( snapshot );
-
-video.addEventListener('click', snapshot, false);
-
-navigator.getUserMedia  = navigator.getUserMedia ||
-	navigator.webkitGetUserMedia ||
-	navigator.mozGetUserMedia ||
-	navigator.msGetUserMedia;
-
-if (navigator.getUserMedia)
-{
-	streaming = true;
-	navigator.getUserMedia({audio: false, video: true}, function(stream) {
-		video.src = window.URL.createObjectURL(stream);
-	}, errorCallback);
-}
-else
-{
-	video.src = 'somevideo.webm'; // fallback.
-}
-
-function errorCallback (argument) {
-	// body...
 }
 </script>
